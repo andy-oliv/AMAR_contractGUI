@@ -1,0 +1,64 @@
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+
+# Configurações específicas do PyCharm
+.idea/
+*.iml
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+.eggs/
+
+# Logs e arquivos temporários
+*.log
+*.pid
+*.seed
+*.swp
+*.tmp
+*.bak
+
+# Build e distribuição
+build/
+dist/
+*.spec
+
+# Dependências instaladas via pip
+venv/
+env/
+*.venv/
+pip-log.txt
+
+# Testes e relatórios
+.coverage
+.tox/
+.cache/
+pytest_cache/
+htmlcov/
+
+# Arquivos de ambiente e variáveis sensíveis
+.env
+.env.*
+
+# Configurações de ferramentas de análise de código
+mypy_cache/
+pylint.log
+pyrightconfig.json
+
+# Arquivos de pacotes/containers
+*.dockerignore
+*.tar.gz
+
+# Arquivos de lock e dependências
+poetry.lock
+Pipfile.lock
+
+# Outros arquivos de editor/IDE
+*.sublime-project
+*.sublime-workspace
+.vscode/
