@@ -62,3 +62,5 @@ Pipfile.lock
 *.sublime-project
 *.sublime-workspace
 .vscode/
+
+src/assets/signature.png
