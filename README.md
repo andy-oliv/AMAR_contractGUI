@@ -35,7 +35,10 @@ The app was built with:
 <hr>
 
 ## 💾 How to install
-in the terminal, run the following command: `pip install -r requirements.txt`
+in the terminal, run the following command: 
+```bash
+pip install -r requirements.txt
+```
 all contract-sensitive information is protected using .env variables. Make sure to fill in all the necessary information in a .env file, following the .env.example file.
 
 <hr>
