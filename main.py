@@ -15,7 +15,7 @@ customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("./src/assets/themes/amar_theme.json")
 
 window = customtkinter.CTk()
-window.geometry('600x800')
+window.geometry('610x800')
 window.title('Amar - Contratos Rápidos')
 window.iconbitmap('./src/assets/favicon.ico')
 
@@ -78,19 +78,19 @@ def generate_contract(client_name, client_address, client_email, client_cpf, eve
 logo = customtkinter.CTkImage(light_image=Image.open('src/assets/logo_tagline.png'), dark_image=Image.open('src/assets/logo_tagline.png'), size=(300,130))
 
 image_label = customtkinter.CTkLabel(window, text="", image=logo)
-image_label.grid(row=0, column=0, pady=10, sticky="NS")
+image_label.grid(row=0, column=0, pady=(30,10), sticky="NS")
 
 client_frame_title = customtkinter.CTkLabel(window, text="Dados do cliente", font=("Poppins", 14))
 client_frame_title.grid(row=1, column=0, sticky="W", padx=30, pady=(20, 0))
 
 client_frame = customtkinter.CTkFrame(window, border_width=0)
-client_frame.grid(row=2, column=0, sticky="EW", padx=30)
+client_frame.grid(row=2, column=0, sticky="EW", padx=30, ipady=5)
 
 client_label_name = customtkinter.CTkLabel(client_frame, text="Nome:", font=("Poppins", 16))
-client_label_name.grid(row=3,column=0, sticky="W", padx=(25,0), pady=10)
+client_label_name.grid(row=3,column=0, sticky="W", padx=(25,0), pady=(15,10))
 
 client_input_name = customtkinter.CTkEntry(client_frame, width=400, placeholder_text="digite o nome completo do cliente", placeholder_text_color="#a7887b")
-client_input_name.grid(row=3, column=1, pady=10)
+client_input_name.grid(row=3, column=1, pady=(15,10))
 
 client_label_address = customtkinter.CTkLabel(client_frame, text="Endereço:", font=("Poppins", 16))
 client_label_address.grid(row=4,column=0, padx=(25,20), pady=10)
