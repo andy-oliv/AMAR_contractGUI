@@ -1,6 +1,3 @@
-from typing_extensions import ParamSpecKwargs
-
-
 class Package:
     def __init__(self,name,pix_price,card_price, coverage_duration):
         self.name = name
