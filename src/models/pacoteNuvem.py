@@ -6,7 +6,7 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 
 load_dotenv()
 
-def generate_nuvem_contract(client, event, package, generation_date, discount):
+def generate_nuvem_contract(client, event, package, generation_date, discount, folder):
 
     #CONTRACT DETAILS
     extra_hour = "200,00"
@@ -306,4 +306,4 @@ def generate_nuvem_contract(client, event, package, generation_date, discount):
     document.add_paragraph('________________________________________________')
 
     #SAVING
-    document.save(f'Contrato - {client.name}.docx')
+    document.save(f'{folder}/Contrato - {client.name}.docx')
