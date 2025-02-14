@@ -39,6 +39,10 @@ in the terminal, run the following command:
 ```bash
 pip install -r requirements.txt
 ```
+to generate GUI app run:
+```bash
+pyinstaller --name contratosRapidos --onedir --windowed --icon=src\assets\favicon.ico main.py
+```
 all contract-sensitive information is protected using .env variables. Make sure to fill in all the necessary information in a .env file, following the .env.example file.
 
 <hr>
