@@ -1,17 +1,26 @@
-import os
-from dotenv import load_dotenv
 from docx import Document
 from docx.shared import Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
+import os
+import sys
+import datetime
 
-load_dotenv()
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
 
-def generate_nuvem_contract(client, event, package, generation_date, discount, folder):
+    return os.path.join(base_path, relative_path)
+
+def generate_nuvem_contract(client, event, package, discount, folder):
+    months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro',
+              'Novembro', 'Dezembro']
+    date = datetime.datetime.now()
 
     #CONTRACT DETAILS
     extra_hour = "200,00"
     extra_hour_spelled = "duzentos reais"
-    contract_date = generation_date
 
     if event.payment_type == "PIX":
         coverage_price = package.pix_price - package.discounted_value(float(discount))
@@ -30,19 +39,19 @@ def generate_nuvem_contract(client, event, package, generation_date, discount, f
     #EDITING FILE
     header = document.add_paragraph()
     header.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    header.add_run().add_picture("./src/assets/logo.png", width=Pt(150), height=Pt(90))
+    header.add_run().add_picture(resource_path("src\\assets\\logo.png"), width=Pt(150), height=Pt(90))
     header.add_run().add_break(WD_BREAK.LINE)
     header.add_run('CONTRATO DE PRESTAÇÃO DE SERVIÇOS FOTOGRÁFICOS').bold = True
 
     personal_info = document.add_paragraph()
     personal_info.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-    personal_info.add_run(os.getenv("PHOTOGRAPHER_NAME")).bold = True
+    personal_info.add_run('Eveline Medeiros').bold = True
     personal_info.add_run(', fotógrafa, brasileira, portadora da carteira de identidade nº ')
-    personal_info.add_run(os.getenv("PHOTOGRAPHER_ID")).bold = True
+    personal_info.add_run('6110281539').bold = True
     personal_info.add_run(', expedida pelo IFP, inscrita no CNPJ sob o número ')
-    personal_info.add_run(os.getenv("PHOTOGRAPHER_CNPJ")).bold = True
+    personal_info.add_run('32.973.993/0001-74').bold = True
     personal_info.add_run(', residente e domiciliada à ')
-    personal_info.add_run(os.getenv("PHOTOGRAPHER_ADDRESS")).bold = True
+    personal_info.add_run('Rua Santo Antônio, 184, Vila City, Cachoeirinha, Rio Grande do Sul').bold = True
     personal_info.add_run(', doravante denominada ')
     personal_info.add_run('CONTRATADO').bold = True
     personal_info.add_run(', e ')
@@ -60,7 +69,7 @@ def generate_nuvem_contract(client, event, package, generation_date, discount, f
     clause_object = document.add_paragraph()
     clause_object.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     clause_object.add_run('O presente contrato destina-se à prestação de serviço(s) fotográfico(s) do(s) seguinte(s) evento(s): ')
-    clause_object.add_run(f'{event.name} em {event.location} à partir das {event.start_time} por {package.coverage_duration} de cobertura').bold = True
+    clause_object.add_run(f'{event.name} em {event.location} dia {event.date} à partir das {event.start_time} por {package.coverage_duration} de cobertura').bold = True
     clause_object.add_run('. No qual se obriga a entregar ao ')
     clause_object.add_run('CONTRATANTE').bold = True
     clause_object.add_run(', como objeto deste contrato, fotos do(s) evento(s), onde a quantidade delas é decidida unicamente pelo contratado (mínimo 100 fotos). As fotos devidamente selecionadas e editadas pelo ')
@@ -96,7 +105,7 @@ def generate_nuvem_contract(client, event, package, generation_date, discount, f
     clause_payment_warning.add_run('O atraso no pagamento gerará multa de 0,33% por dia atrasado ou 10% ao mês, podendo acarretar também na negativação do CPF nos serviços de proteção ao crédito.').bold = True
     clause_payment_warning.add_run().add_break(WD_BREAK.LINE)
     clause_payment_warning.add_run('Chave PIX: ').bold = True
-    clause_payment_warning.add_run(os.getenv("PIX_KEY"))
+    clause_payment_warning.add_run('amarinfancias@gmail.com')
 
     unique_paragraph = document.add_paragraph()
     unique_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
@@ -286,7 +295,7 @@ def generate_nuvem_contract(client, event, package, generation_date, discount, f
     contract_duration.add_run(' não realize a assinatura do presente contrato, o pagamento pelos serviços e/ou a realização do serviço fotográfico equivalem a aceite automático de todas as cláusulas constantes no presente documento.')
 
     document.add_paragraph('E, por estarem de acordo, confirmam este contrato:')
-    document.add_paragraph(f'Cachoeirinha, {contract_date}').alignment = WD_ALIGN_PARAGRAPH.CENTER
+    document.add_paragraph(f'Cachoeirinha, {months[int(date.strftime('%m')) - 1]} de {date.strftime("%Y")}').alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     client_signature = document.add_paragraph()
     client_signature.add_run('CONTRATANTE:')
@@ -300,9 +309,9 @@ def generate_nuvem_contract(client, event, package, generation_date, discount, f
     amar_signature = document.add_paragraph()
     amar_signature.add_run('CONTRATADA:')
     amar_signature.add_run().add_break(WD_BREAK.LINE)
-    amar_signature.add_run(os.getenv("PHOTOGRAPHER_NAME"))
+    amar_signature.add_run('Eveline Medeiros')
     signature = document.add_paragraph()
-    signature.add_run().add_picture(os.getenv("PHOTOGRAPHER_SIGNATURE_IMAGE_URL"), width=Pt(80), height=Pt(80))
+    signature.add_run().add_picture(resource_path('src\\assets\\signature.png'), width=Pt(80), height=Pt(80))
     document.add_paragraph('________________________________________________')
 
     #SAVING

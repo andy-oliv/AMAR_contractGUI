@@ -10,14 +10,23 @@ from src.models.pacoteNuvem import generate_nuvem_contract
 from src.models.pacoteSol import generate_sol_contract
 from src.models.pacoteLua import generate_lua_contract
 from src.models.pacoteCometa import generate_cometa_contract
+import os
+import sys
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 customtkinter.set_appearance_mode("dark")
-customtkinter.set_default_color_theme("./src/assets/themes/amar_theme.json")
+customtkinter.set_default_color_theme(resource_path("src\\assets\\themes\\amar_theme.json"))
 
 window = customtkinter.CTk()
 window.geometry('610x800')
 window.title('Amar - Contratos Rápidos')
-window.iconbitmap('./src/assets/favicon.ico')
+window.iconbitmap(resource_path('src\\assets\\favicon.ico'))
 
 def create_client(client_name, client_address, client_email, client_cpf):
 
@@ -34,7 +43,7 @@ def create_event(event_name, event_location, event_date,
     return new_event
 
 def generate_contract(client_name, client_address, client_email, client_cpf, event_name, event_location, event_date,
-           event_start_time, event_commuting_fee, event_payment_type, package, contract_date, event_due_date, discount):
+           event_start_time, event_commuting_fee, event_payment_type, package, event_due_date, discount):
     if event_payment_type == "" or package == "":
         messagebox.showwarning(title="Erro", message="Os campos tipo de pagamento e pacote devem estar preenchidos")
     else:
@@ -73,9 +82,9 @@ def generate_contract(client_name, client_address, client_email, client_cpf, eve
         window.filename = filedialog.askdirectory(initialdir="C:/Users", title="Selecione uma pasta para salvar o arquivo")
         folder = window.filename
 
-        new_contract["contract_model"](client,event,new_contract["package_details"],contract_date, discount, folder)
+        new_contract["contract_model"](client,event,new_contract["package_details"], discount, folder)
 
-logo = customtkinter.CTkImage(light_image=Image.open('src/assets/logo_tagline.png'), dark_image=Image.open('src/assets/logo_tagline.png'), size=(300,130))
+logo = customtkinter.CTkImage(light_image=Image.open(resource_path('src\\assets\\logo_tagline.png')), dark_image=Image.open(resource_path('src\\assets\\logo_tagline.png')), size=(300,130))
 
 image_label = customtkinter.CTkLabel(window, text="", image=logo)
 image_label.grid(row=0, column=0, pady=(30,10), sticky="NS")
@@ -170,13 +179,7 @@ package_label.grid(row=17, column=0, sticky="W", padx=(25,0), pady=10)
 package_input = customtkinter.CTkEntry(event_frame, placeholder_text='Céu, Nuvem, Sol etc', placeholder_text_color="#a7887b", width=280)
 package_input.grid(row=17, column=1, sticky="W", pady=10)
 
-contract_label_date = customtkinter.CTkLabel(event_frame, text="Data do contrato:", font=("Poppins", 16))
-contract_label_date.grid(row=18, column=0, sticky="W", padx=(25,0), pady=10)
-
-contract_input_date = customtkinter.CTkEntry(event_frame, placeholder_text='ex: Janeiro de 2025', placeholder_text_color="#a7887b", width=280)
-contract_input_date.grid(row=18, column=1, sticky="W", pady=10)
-
-submit_button = customtkinter.CTkButton(window, text="Gerar contrato", font=("Poppins", 16), command=lambda: generate_contract(client_input_name.get(),client_input_address.get(),client_input_email.get(),client_input_cpf.get(),event_input_name.get(),event_input_location.get(),event_input_date.get(),event_input_start_time.get(),event_input_commuting_fee.get().replace(",", "."),event_input_payment_type.get(),package_input.get(),contract_input_date.get(), event_input_due_date.get(), discount_input.get()))
+submit_button = customtkinter.CTkButton(window, text="Gerar contrato", font=("Poppins", 16), command=lambda: generate_contract(client_input_name.get(),client_input_address.get(),client_input_email.get(),client_input_cpf.get(),event_input_name.get(),event_input_location.get(),event_input_date.get(),event_input_start_time.get(),event_input_commuting_fee.get().replace(",", "."),event_input_payment_type.get(),package_input.get(), event_input_due_date.get(), discount_input.get()))
 submit_button.grid(row=20, column=0, pady=30, padx=30, sticky="W")
 
 window.mainloop()
