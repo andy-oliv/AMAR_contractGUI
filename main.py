@@ -1,15 +1,10 @@
 import customtkinter
 from PIL import Image
 from tkinter import filedialog
-from tkinter import messagebox
 from src.entities.client import Client
-from src.entities.package import package_nuvem, package_ceu, package_sol, package_lua, package_cometa
+from src.entities.package import package_1hr, package_2hr, package_3hr, package_video
 from src.entities.event import Event
-from src.models.pacoteCeu import generate_ceu_contract
-from src.models.pacoteNuvem import generate_nuvem_contract
-from src.models.pacoteSol import generate_sol_contract
-from src.models.pacoteLua import generate_lua_contract
-from src.models.pacoteCometa import generate_cometa_contract
+from src.models.contractModel import generate_contract
 import os
 import sys
 def resource_path(relative_path):
@@ -42,47 +37,36 @@ def create_event(event_name, event_location, event_date,
     new_event = Event(event_name, event_location, event_date, event_start_time, event_commuting_fee, event_payment_type, due_date)
     return new_event
 
-def generate_contract(client_name, client_address, client_email, client_cpf, event_name, event_location, event_date,
-           event_start_time, event_commuting_fee, event_payment_type, package, event_due_date, discount):
-    if event_payment_type == "" or package == "":
-        messagebox.showwarning(title="Erro", message="Os campos tipo de pagamento e pacote devem estar preenchidos")
-    else:
-        client = create_client(client_name, client_address, client_email, client_cpf)
+def create_contract(client_name, client_address, client_email, client_cpf, event_name, event_location, event_date,
+           event_start_time, event_commuting_fee, event_payment_type, package, event_due_date, discount, additional_service):
+    client = create_client(client_name, client_address, client_email, client_cpf)
 
-        event = create_event(event_name, event_location, event_date,
-               event_start_time, event_commuting_fee, event_payment_type, event_due_date)
+    event = create_event(event_name, event_location, event_date,
+           event_start_time, event_commuting_fee, event_payment_type, event_due_date)
 
-        contract_map = {
-            "Nuvem": {
-                "package_details": package_nuvem,
-                "contract_model": generate_nuvem_contract
-            },
-            "Céu": {
-                "package_details": package_ceu,
-                "contract_model": generate_ceu_contract
-            },
-            "Sol": {
-                "package_details": package_sol,
-                "contract_model": generate_sol_contract
-            },
-            "Lua": {
-                "package_details": package_lua,
-                "contract_model": generate_lua_contract
-            },
-            "Cometa": {
-                "package_details": package_cometa,
-                "contract_model": generate_cometa_contract
-            }
-        }
-        new_contract = contract_map.get(package, None)
+    package_map = {
+        "1hr": {
+            "package_details": package_1hr,
+        },
+        "2hr": {
+            "package_details": package_2hr,
+        },
+        "3hr": {
+            "package_details": package_3hr,
+        },
+        "video": {
+            "package_details": package_video,
+        },
+    }
+    package = package_map.get(package, None)
 
-        if discount == "":
-            discount = 0
+    if discount == "":
+        discount = 0
 
-        window.filename = filedialog.askdirectory(initialdir="C:/Users", title="Selecione uma pasta para salvar o arquivo")
-        folder = window.filename
+    window.filename = filedialog.askdirectory(initialdir="C:/Users", title="Selecione uma pasta para salvar o arquivo")
+    folder = window.filename
 
-        new_contract["contract_model"](client,event,new_contract["package_details"], discount, folder)
+    generate_contract(client,event,package["package_details"], discount, folder, additional_service)
 
 logo = customtkinter.CTkImage(light_image=Image.open(resource_path('src\\assets\\logo_tagline.png')), dark_image=Image.open(resource_path('src\\assets\\logo_tagline.png')), size=(300,130))
 
@@ -158,8 +142,13 @@ event_input_commuting_fee.grid(row=13, column=1, pady=10)
 event_label_payment_type = customtkinter.CTkLabel(event_frame, text="Tipo de pagamento:", font=("Poppins", 16))
 event_label_payment_type.grid(row=14, column=0, sticky="W", padx=(25,0), pady=10)
 
-event_input_payment_type = customtkinter.CTkEntry(event_frame, placeholder_text='PIX ou Cartão', placeholder_text_color="#a7887b", width=280)
-event_input_payment_type.grid(row=14, column=1, pady=10)
+selected_payment_type = customtkinter.StringVar(value="PIX")
+
+payment_radio1 = customtkinter.CTkRadioButton(event_frame, text="PIX", variable = selected_payment_type, value = 'PIX')
+payment_radio1.grid(row=14, column=1, sticky="W")
+
+payment_radio2 = customtkinter.CTkRadioButton(event_frame, text="Cartão", variable = selected_payment_type, value = 'cartão')
+payment_radio2.grid(row=14, column=1)
 
 discount_label = customtkinter.CTkLabel(event_frame, text="Desconto: ", font=("Poppins", 16))
 discount_label.grid(row=15, column=0, sticky="W", padx=(25,0), pady=10)
@@ -176,10 +165,32 @@ event_input_due_date.grid(row=16, column=1, pady=10)
 package_label = customtkinter.CTkLabel(event_frame, text="Pacote:", font=("Poppins", 16))
 package_label.grid(row=17, column=0, sticky="W", padx=(25,0), pady=10)
 
-package_input = customtkinter.CTkEntry(event_frame, placeholder_text='Céu, Nuvem, Sol etc', placeholder_text_color="#a7887b", width=280)
-package_input.grid(row=17, column=1, sticky="W", pady=10)
+selected_package_type = customtkinter.StringVar(value="3hr")
 
-submit_button = customtkinter.CTkButton(window, text="Gerar contrato", font=("Poppins", 16), command=lambda: generate_contract(client_input_name.get(),client_input_address.get(),client_input_email.get(),client_input_cpf.get(),event_input_name.get(),event_input_location.get(),event_input_date.get(),event_input_start_time.get(),event_input_commuting_fee.get().replace(",", "."),event_input_payment_type.get(),package_input.get(), event_input_due_date.get(), discount_input.get()))
-submit_button.grid(row=20, column=0, pady=30, padx=30, sticky="W")
+package_radio1 = customtkinter.CTkRadioButton(event_frame, text="1hr", variable = selected_package_type, value = '1hr')
+package_radio1.grid(row=17, column=1, sticky="W")
+
+package_radio2 = customtkinter.CTkRadioButton(event_frame, text="2hrs", variable = selected_package_type, value = '2hr')
+package_radio2.grid(row=18, column=1, sticky="W", pady=(0,12))
+
+package_radio3 = customtkinter.CTkRadioButton(event_frame, text="3hrs", variable = selected_package_type, value = '3hr')
+package_radio3.grid(row=19, column=1, sticky="W", pady=(0,12))
+
+package_radio4 = customtkinter.CTkRadioButton(event_frame, text="3hrs + video", variable = selected_package_type, value = 'video')
+package_radio4.grid(row=20, column=1, sticky="W", pady=(0,20))
+
+additional_service_label = customtkinter.CTkLabel(event_frame, text="Com ensaio pré-festa?", font=("Poppins", 16))
+additional_service_label.grid(row=21, column=0, sticky="W", padx=(25,0), pady=10)
+
+selected_additional_service = customtkinter.BooleanVar()
+
+additional_service_radio1 = customtkinter.CTkRadioButton(event_frame, text="Sim", variable = selected_additional_service, value = True)
+additional_service_radio1.grid(row=21, column=1, sticky="W")
+
+additional_service_radio2 = customtkinter.CTkRadioButton(event_frame, text="Não", variable = selected_additional_service, value = False)
+additional_service_radio2.grid(row=21, column=1)
+
+submit_button = customtkinter.CTkButton(window, text="Gerar contrato", font=("Poppins", 16), command=lambda: create_contract(client_input_name.get(),client_input_address.get(),client_input_email.get(),client_input_cpf.get(),event_input_name.get(),event_input_location.get(),event_input_date.get(),event_input_start_time.get(),event_input_commuting_fee.get().replace(",", "."),selected_payment_type.get(),selected_package_type.get(), event_input_due_date.get(), discount_input.get(), selected_additional_service.get()))
+submit_button.grid(row=23, column=0, pady=30, padx=30, sticky="W")
 
 window.mainloop()

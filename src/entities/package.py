@@ -9,8 +9,7 @@ class Package:
             discounted_coverage_price = (discount/100) * self.pix_price
             return discounted_coverage_price
 
-package_nuvem = Package("Nuvem", 450, 548, "1 hora")
-package_ceu = Package("Céu", 850, 986, "3 horas")
-package_sol = Package("Sol", 1330, 1500, "3 horas")
-package_lua = Package("Lua", 1686, 1950, "3 horas")
-package_cometa = Package("Cometa", 2430, 2726, "3 horas")
+package_1hr = Package("1hr de cobertura fotográfica", 500, 548, "1 hora")
+package_2hr = Package("2hrs de cobertura fotográfica", 700, 850, "2 horas")
+package_3hr = Package("3hrs de cobertura fotográfica", 850, 950, "3 horas")
+package_video = Package("3hrs de cobertura fotográfica + vídeo de até 6min do evento", 1350, 1480, "3 horas")

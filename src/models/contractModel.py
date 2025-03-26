@@ -1,6 +1,7 @@
 from docx import Document
 from docx.shared import Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
+from src.entities.additionalService import pre_party_photoshoot
 import os
 import sys
 import datetime
@@ -13,14 +14,12 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
-def generate_nuvem_contract(client, event, package, discount, folder):
-    months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro',
-              'Novembro', 'Dezembro']
+def generate_contract(client, event, package, discount, folder, additional_service):
+    months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
     date = datetime.datetime.now()
 
     #CONTRACT DETAILS
     extra_hour = "200,00"
-    extra_hour_spelled = "duzentos reais"
 
     if event.payment_type == "PIX":
         coverage_price = package.pix_price - package.discounted_value(float(discount))
@@ -72,14 +71,22 @@ def generate_nuvem_contract(client, event, package, discount, folder):
     clause_object.add_run(f'{event.name} em {event.location} dia {event.date} à partir das {event.start_time} por {package.coverage_duration} de cobertura').bold = True
     clause_object.add_run('. No qual se obriga a entregar ao ')
     clause_object.add_run('CONTRATANTE').bold = True
-    clause_object.add_run(', como objeto deste contrato, fotos do(s) evento(s), onde a quantidade delas é decidida unicamente pelo contratado (mínimo 100 fotos). As fotos devidamente selecionadas e editadas pelo ')
-    clause_object.add_run('CONTRATADO').bold = True
-    clause_object.add_run(f', serão entregues por email para {client.email} em até 30 dias após a data do evento.')
+    if not additional_service:
+        clause_object.add_run(', como objeto deste contrato, fotos do(s) evento(s), onde a quantidade delas é decidida unicamente pelo contratado (mínimo 100 fotos). As fotos devidamente selecionadas e editadas pelo ')
+        clause_object.add_run('CONTRATADO').bold = True
+        clause_object.add_run(f', serão entregues por email para {client.email} em até 30 dias após a data do evento. Caso haja a aquisição de serviços que envolvam vídeo, o material em vídeo será entregue de acordo com as especificações desta cláusula para o email indicado anteriormente.')
+    else:
+        clause_object.add_run(', como objeto deste contrato, fotos do(s) evento(s), onde a quantidade delas é decidida unicamente pelo contratado (mínimo 100 fotos), mais as fotos do ensaio pré-festa (30 fotos). As fotos devidamente selecionadas e editadas pelo ')
+        clause_object.add_run('CONTRATADO').bold = True
+        clause_object.add_run(f', serão entregues por email para {client.email} em até 30 dias após a data do evento. Caso haja a aquisição de serviços que envolvam vídeo, o material em vídeo será entregue de acordo com as especificações desta cláusula para o email indicado anteriormente.')
 
     services = document.add_paragraph()
     services.add_run('Serviços adquiridos').bold = True
     services.add_run().add_break(WD_BREAK.LINE)
-    services.add_run(f'Pacote {package.name}')
+    if not additional_service:
+        services.add_run(f'{package.name}')
+    else:
+        services.add_run(f'{package.name} + {pre_party_photoshoot.name}')
 
     clause_payment_title = document.add_paragraph()
     clause_payment_title.add_run('Cláusula Segunda - Valor e Forma de Pagamento').bold = True
@@ -92,13 +99,35 @@ def generate_nuvem_contract(client, event, package, discount, folder):
     clause_payment.add_run(', a importância total de ')
     clause_payment.add_run(f'R$ {'{0:.2f}'.format(coverage_price).replace(".", ",")} ').bold = True
     clause_payment.add_run('pela prestação dos serviços descritos na cláusula anterior mais ')
-    clause_payment.add_run(f'R$ {'{0:.2f}'.format(float(event.commuting_fee)).replace(".", ",")}').bold = True
-    clause_payment.add_run(' de deslocamento, totalizando ')
-    clause_payment.add_run(
-        f'R$ {'{0:.2f}'.format(coverage_price + float(event.commuting_fee)).replace(".", ",")}').bold = True
-    clause_payment.add_run(', sendo este valor efetivado via ')
-    clause_payment.add_run(f'{event.payment_type} até o dia {event.payment_due_date}').bold = True
-    clause_payment.add_run('.')
+    if additional_service:
+        if event.payment_type == "PIX":
+            clause_payment.add_run(f'R$ {'{0:.2f}'.format(float(pre_party_photoshoot.pix_price)).replace(".", ",")}').bold = True
+            clause_payment.add_run(' do ensaio pré-festa, mais ')
+            clause_payment.add_run(f'R$ {'{0:.2f}'.format(float(event.commuting_fee)).replace(".", ",")}').bold = True
+            clause_payment.add_run(' de deslocamento, totalizando ')
+            clause_payment.add_run(
+                f'R$ {'{0:.2f}'.format(coverage_price + float(event.commuting_fee) + float(pre_party_photoshoot.pix_price)).replace(".", ",")}').bold = True
+            clause_payment.add_run(', sendo este valor efetivado via ')
+            clause_payment.add_run(f'{event.payment_type} até o dia {event.payment_due_date}').bold = True
+            clause_payment.add_run('.')
+        else:
+            clause_payment.add_run(
+                f'R$ {'{0:.2f}'.format(float(pre_party_photoshoot.card_price)).replace(".", ",")}').bold = True
+            clause_payment.add_run(' do ensaio pré-festa, mais ')
+            clause_payment.add_run(f'R$ {'{0:.2f}'.format(float(event.commuting_fee)).replace(".", ",")}').bold = True
+            clause_payment.add_run(' de deslocamento, totalizando ')
+            clause_payment.add_run(
+                f'R$ {'{0:.2f}'.format(coverage_price + float(event.commuting_fee) + float(pre_party_photoshoot.card_price)).replace(".", ",")}').bold = True
+            clause_payment.add_run(', sendo este valor efetivado via ')
+            clause_payment.add_run(f'{event.payment_type} até o dia {event.payment_due_date}').bold = True
+            clause_payment.add_run('.')
+    else:
+        clause_payment.add_run(f'R$ {'{0:.2f}'.format(float(event.commuting_fee)).replace(".", ",")}').bold = True
+        clause_payment.add_run(' de deslocamento, totalizando ')
+        clause_payment.add_run(f'R$ {'{0:.2f}'.format(coverage_price + float(event.commuting_fee)).replace(".", ",")}').bold = True
+        clause_payment.add_run(', sendo este valor efetivado via ')
+        clause_payment.add_run(f'{event.payment_type} até o dia {event.payment_due_date}').bold = True
+        clause_payment.add_run('.')
 
     clause_payment_warning = document.add_paragraph()
     clause_payment_warning.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
@@ -114,7 +143,7 @@ def generate_nuvem_contract(client, event, package, discount, folder):
     unique_paragraph.add_run('CONTRATANTE ').bold = True
     unique_paragraph.add_run('tenha interesse de acrescentar hora a mais de serviço prestado no evento, as mesmas serão cobradas a parte pelo ')
     unique_paragraph.add_run('CONTRATADO ').bold = True
-    unique_paragraph.add_run(f'ao valor de R$ {extra_hour} ({extra_hour_spelled}) por hora extra.')
+    unique_paragraph.add_run(f'ao valor de R$ {extra_hour} por hora extra.')
 
     obligations_3_title = document.add_paragraph()
     obligations_3_title.add_run('Cláusula Terceira - Obrigações do Contratado').bold = True
@@ -303,7 +332,6 @@ def generate_nuvem_contract(client, event, package, discount, folder):
     client_signature.add_run(f'{client.name}')
     document.add_paragraph()
     document.add_paragraph()
-    document.add_paragraph()
     document.add_paragraph('________________________________________________')
 
     amar_signature = document.add_paragraph()
@@ -311,7 +339,7 @@ def generate_nuvem_contract(client, event, package, discount, folder):
     amar_signature.add_run().add_break(WD_BREAK.LINE)
     amar_signature.add_run('Eveline Medeiros')
     signature = document.add_paragraph()
-    signature.add_run().add_picture(resource_path('src\\assets\\signature.png'), width=Pt(80), height=Pt(80))
+    signature.add_run().add_picture(resource_path("src\\assets\\signature.png"), width=Pt(80), height=Pt(80))
     document.add_paragraph('________________________________________________')
 
     #SAVING
