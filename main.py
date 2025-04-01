@@ -1,4 +1,5 @@
 import customtkinter
+import tkcalendar
 from PIL import Image
 from tkinter import filedialog
 from src.entities.client import Client
@@ -7,6 +8,7 @@ from src.entities.event import Event
 from src.models.contractModel import generate_contract
 import os
 import sys
+import datetime
 def resource_path(relative_path):
     try:
         base_path = sys._MEIPASS
@@ -22,6 +24,28 @@ window = customtkinter.CTk()
 window.geometry('610x800')
 window.title('Amar - Contratos Rápidos')
 window.iconbitmap(resource_path('src\\assets\\favicon.ico'))
+
+pop_up = None
+
+def generate_calendar_window(pop_up_window, date_input):
+    if pop_up_window is None:
+        pop_up_window = customtkinter.CTkToplevel(window)
+        pop_up_window.geometry('400x400')
+        pop_up_window.attributes("-topmost", True)
+        pop_up_window.title("Selecione a data")
+
+        current_date = datetime.datetime.now()
+
+        cal = tkcalendar.Calendar(pop_up_window, font="Poppins 14", locale='pt_BR',year=int(current_date.strftime("%Y")), month=int(current_date.strftime("%m")), day=int(current_date.strftime("%d")))
+        cal.pack(fill="both", expand=True)
+
+        select_button = customtkinter.CTkButton(pop_up_window, text="Selecionar", font=("Poppins", 14), command= lambda: get_date(pop_up_window, cal, date_input))
+        select_button.pack(pady=10)
+
+def get_date(calendar_window,calendar,date_var):
+    date_var.delete(0, "end")
+    date_var.insert(0, calendar.get_date())
+    calendar_window.destroy()
 
 def create_client(client_name, client_address, client_email, client_cpf):
 
@@ -124,8 +148,11 @@ event_input_location.grid(row=10, column=1, pady=10)
 event_label_date = customtkinter.CTkLabel(event_frame, text="Data:", font=("Poppins", 16))
 event_label_date.grid(row=11, column=0, sticky="W", padx=(25,0),  pady=10)
 
-event_input_date = customtkinter.CTkEntry(event_frame, placeholder_text='formato dd/mm/aaaa', placeholder_text_color="#a7887b", width=280)
-event_input_date.grid(row=11, column=1, pady=10)
+event_input_date = customtkinter.CTkEntry(event_frame, placeholder_text='dd/mm/aaaa', placeholder_text_color="#a7887b", width=150)
+event_input_date.grid(row=11, column=1, pady=10, sticky="W")
+
+event_select_button = customtkinter.CTkButton(event_frame, text="Selecionar data", font=("Poppins", 14), command= lambda: generate_calendar_window(pop_up, event_input_date))
+event_select_button.grid(row=11, column=1, pady=10, padx=(100, 0))
 
 event_label_start_time = customtkinter.CTkLabel(event_frame, text="Início da cobertura:", font=("Poppins", 16))
 event_label_start_time.grid(row=12, column=0, sticky="W", padx=(25,0), pady=10)
@@ -159,8 +186,11 @@ discount_input.grid(row=15, column=1, pady=10)
 event_label_due_date = customtkinter.CTkLabel(event_frame, text="Data de vencimento:", font=("Poppins", 16))
 event_label_due_date.grid(row=16, column=0, padx=(0,25), pady=10)
 
-event_input_due_date = customtkinter.CTkEntry(event_frame, placeholder_text='formato dd/mm/aaaa', placeholder_text_color="#a7887b", width=280)
-event_input_due_date.grid(row=16, column=1, pady=10)
+event_input_due_date = customtkinter.CTkEntry(event_frame, placeholder_text='dd/mm/aaaa', placeholder_text_color="#a7887b", width=150)
+event_input_due_date.grid(row=16, column=1, pady=10, sticky="W")
+
+event_select_button = customtkinter.CTkButton(event_frame, text="Selecionar data", font=("Poppins", 14), command= lambda: generate_calendar_window(pop_up, event_input_due_date))
+event_select_button.grid(row=16, column=1, pady=10, padx=(100, 0))
 
 package_label = customtkinter.CTkLabel(event_frame, text="Pacote:", font=("Poppins", 16))
 package_label.grid(row=17, column=0, sticky="W", padx=(25,0), pady=10)
