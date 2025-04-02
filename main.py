@@ -36,7 +36,7 @@ def generate_calendar_window(pop_up_window, date_input):
 
         current_date = datetime.datetime.now()
 
-        cal = tkcalendar.Calendar(pop_up_window, font="Poppins 14", locale='pt_BR',year=int(current_date.strftime("%Y")), month=int(current_date.strftime("%m")), day=int(current_date.strftime("%d")))
+        cal = tkcalendar.Calendar(pop_up_window, background="#936a56", headersbackground="#936a56", headersforeground="#FFFFFF", font="Poppins 14", locale='pt_BR',year=int(current_date.strftime("%Y")), month=int(current_date.strftime("%m")), day=int(current_date.strftime("%d")))
         cal.pack(fill="both", expand=True)
 
         select_button = customtkinter.CTkButton(pop_up_window, text="Selecionar", font=("Poppins", 14), command= lambda: get_date(pop_up_window, cal, date_input))
