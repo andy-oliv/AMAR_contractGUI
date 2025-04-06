@@ -63,3 +63,4 @@ Pipfile.lock
 .vscode/
 
 src/assets/signature.png
+alembic.ini

@@ -44,13 +44,13 @@ def generate_contract(client, event, package, discount, folder, additional_servi
 
     personal_info = document.add_paragraph()
     personal_info.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-    personal_info.add_run('Eveline Medeiros').bold = True
+    personal_info.add_run(f'{os.environ.get('PHOTOGRAPHER_NAME')}').bold = True
     personal_info.add_run(', fotógrafa, brasileira, portadora da carteira de identidade nº ')
-    personal_info.add_run('6110281539').bold = True
+    personal_info.add_run(f'{os.environ.get("PHOTOGRAPHER_ID")}').bold = True
     personal_info.add_run(', expedida pelo IFP, inscrita no CNPJ sob o número ')
-    personal_info.add_run('32.973.993/0001-74').bold = True
+    personal_info.add_run(f'{os.environ.get('PHOTOGRAPHER_CNPJ')}').bold = True
     personal_info.add_run(', residente e domiciliada à ')
-    personal_info.add_run('Rua Santo Antônio, 184, Vila City, Cachoeirinha, Rio Grande do Sul').bold = True
+    personal_info.add_run(f'{os.environ.get("PHOTOGRAPHER_ADDRESS")}').bold = True
     personal_info.add_run(', doravante denominada ')
     personal_info.add_run('CONTRATADO').bold = True
     personal_info.add_run(', e ')
@@ -134,7 +134,7 @@ def generate_contract(client, event, package, discount, folder, additional_servi
     clause_payment_warning.add_run('O atraso no pagamento gerará multa de 0,33% por dia atrasado ou 10% ao mês, podendo acarretar também na negativação do CPF nos serviços de proteção ao crédito.').bold = True
     clause_payment_warning.add_run().add_break(WD_BREAK.LINE)
     clause_payment_warning.add_run('Chave PIX: ').bold = True
-    clause_payment_warning.add_run('amarinfancias@gmail.com')
+    clause_payment_warning.add_run(f'{os.environ.get("PIX_KEY")}')
 
     unique_paragraph = document.add_paragraph()
     unique_paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
@@ -339,7 +339,7 @@ def generate_contract(client, event, package, discount, folder, additional_servi
     amar_signature.add_run().add_break(WD_BREAK.LINE)
     amar_signature.add_run('Eveline Medeiros')
     signature = document.add_paragraph()
-    signature.add_run().add_picture(resource_path("src\\assets\\signature.png"), width=Pt(80), height=Pt(80))
+    signature.add_run().add_picture(resource_path(f"{os.environ.get("PHOTOGRAPHER_SIGNATURE_IMAGE_URL")}"), width=Pt(80), height=Pt(80))
     document.add_paragraph('________________________________________________')
 
     #SAVING

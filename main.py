@@ -6,6 +6,9 @@ from src.entities.client import Client
 from src.entities.package import package_1hr, package_2hr, package_3hr, package_video
 from src.entities.event import Event
 from src.models.contractModel import generate_contract
+from src.entities.db_models import Client as Db_client
+from src.entities.db_models import  Event as Db_event
+from src.config.db_config import session
 import os
 import sys
 import datetime
@@ -21,7 +24,7 @@ customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme(resource_path("src\\assets\\themes\\amar_theme.json"))
 
 window = customtkinter.CTk()
-window.geometry('610x800')
+window.geometry('610x850')
 window.title('Amar - Contratos Rápidos')
 window.iconbitmap(resource_path('src\\assets\\favicon.ico'))
 
@@ -61,6 +64,25 @@ def create_event(event_name, event_location, event_date,
     new_event = Event(event_name, event_location, event_date, event_start_time, event_commuting_fee, event_payment_type, due_date)
     return new_event
 
+def update_db(client, event, discount, package, addons):
+    new_client = Db_client(name=client.name, email=client.email,
+                        address=client.address, cpf=client.cpf)
+    new_event = Db_event(name=event.name, address=event.location, date=event.date,
+                      event_start_time=event.start_time, commuting_fee=event.commuting_fee, payment_type=event.payment_type, discount=discount,
+                      payment_due_date=event.payment_due_date, package=package, additional_service=addons)
+
+    client_check = session.query(Db_client).filter(Db_client.email == new_client.email).first()
+    if client_check is None:
+        new_client.events.append(new_event)
+        session.add(new_client)
+        session.commit()
+    else:
+        client_check.events.append(new_event)
+        session.add(new_event)
+        session.commit()
+
+    write_contract(client, event, package, discount, addons)
+
 def create_contract(client_name, client_address, client_email, client_cpf, event_name, event_location, event_date,
            event_start_time, event_commuting_fee, event_payment_type, package, event_due_date, discount, additional_service):
     client = create_client(client_name, client_address, client_email, client_cpf)
@@ -68,6 +90,12 @@ def create_contract(client_name, client_address, client_email, client_cpf, event
     event = create_event(event_name, event_location, event_date,
            event_start_time, event_commuting_fee, event_payment_type, event_due_date)
 
+    if discount == "":
+        discount = 0
+
+    update_db(client, event, discount, package, additional_service)
+
+def write_contract(client, event, package, discount, additional_service):
     package_map = {
         "1hr": {
             "package_details": package_1hr,
@@ -82,143 +110,171 @@ def create_contract(client_name, client_address, client_email, client_cpf, event
             "package_details": package_video,
         },
     }
-    package = package_map.get(package, None)
-
-    if discount == "":
-        discount = 0
+    package_model = package_map.get(package, None)
 
     window.filename = filedialog.askdirectory(initialdir="C:/Users", title="Selecione uma pasta para salvar o arquivo")
     folder = window.filename
+    generate_contract(client, event, package_model["package_details"], discount, folder, additional_service)
 
-    generate_contract(client,event,package["package_details"], discount, folder, additional_service)
+def change_inputs(selection):
+    if selection == "Selecione":
+        client_input_name.delete(0, "end")
+        client_input_address.delete(0, "end")
+        client_input_email.delete(0, "end")
+        client_input_cpf.delete(0, "end")
+    else:
+        selected_client = session.query(Db_client).filter(Db_client.name == selection).first()
+
+        client_input_name.delete(0, "end")
+        client_input_name.insert(0, selected_client.name)
+
+        client_input_address.delete(0, "end")
+        client_input_address.insert(0, selected_client.address)
+
+        client_input_email.delete(0, "end")
+        client_input_email.insert(0, selected_client.email)
+
+        client_input_cpf.delete(0, "end")
+        client_input_cpf.insert(0, selected_client.cpf)
 
 logo = customtkinter.CTkImage(light_image=Image.open(resource_path('src\\assets\\logo_tagline.png')), dark_image=Image.open(resource_path('src\\assets\\logo_tagline.png')), size=(300,130))
 
 image_label = customtkinter.CTkLabel(window, text="", image=logo)
-image_label.grid(row=0, column=0, pady=(30,10), sticky="NS")
+image_label.grid(row=0, column=0, pady=(30,20), sticky="NS")
+
+client_list_label = customtkinter.CTkLabel(window, text="Usuários cadastrados", font=("Poppins", 14))
+client_list_label.grid(row=1, column=0, padx=(30, 0), sticky="W")
+
+db_clients = session.query(Db_client).all()
+clients = ["Selecione"]
+for client in db_clients:
+    clients.append(client.name)
+
+client_list = customtkinter.CTkComboBox(window, values=clients, width=300, dropdown_hover_color="#936a56", command=change_inputs)
+client_list.grid(row=1, column=0, sticky="W", padx=(200, 0))
 
 client_frame_title = customtkinter.CTkLabel(window, text="Dados do cliente", font=("Poppins", 14))
-client_frame_title.grid(row=1, column=0, sticky="W", padx=30, pady=(20, 0))
+client_frame_title.grid(row=2, column=0, sticky="W", padx=30, pady=(20, 0))
 
 client_frame = customtkinter.CTkFrame(window, border_width=0)
-client_frame.grid(row=2, column=0, sticky="EW", padx=30, ipady=5)
+client_frame.grid(row=3, column=0, sticky="EW", padx=30, ipady=5)
 
 client_label_name = customtkinter.CTkLabel(client_frame, text="Nome:", font=("Poppins", 16))
-client_label_name.grid(row=3,column=0, sticky="W", padx=(25,0), pady=(15,10))
+client_label_name.grid(row=4,column=0, sticky="W", padx=(25,0), pady=(15,10))
 
 client_input_name = customtkinter.CTkEntry(client_frame, width=400, placeholder_text="digite o nome completo do cliente", placeholder_text_color="#a7887b")
-client_input_name.grid(row=3, column=1, pady=(15,10))
+client_input_name.grid(row=4, column=1, pady=(15,10))
 
 client_label_address = customtkinter.CTkLabel(client_frame, text="Endereço:", font=("Poppins", 16))
-client_label_address.grid(row=4,column=0, padx=(25,20), pady=10)
+client_label_address.grid(row=5,column=0, padx=(25,20), pady=10)
 
 client_input_address = customtkinter.CTkEntry(client_frame, width=400, placeholder_text="digite o endereço com bairro e cidade", placeholder_text_color="#a7887b")
-client_input_address.grid(row=4, column=1, pady=10)
+client_input_address.grid(row=5, column=1, pady=10)
 
 client_label_email = customtkinter.CTkLabel(client_frame, text="Email:", font=("Poppins", 16))
-client_label_email.grid(row=5,column=0, sticky="W", padx=(25,0), pady=10)
+client_label_email.grid(row=6,column=0, sticky="W", padx=(25,0), pady=10)
 
 client_input_email = customtkinter.CTkEntry(client_frame, width=400, placeholder_text="email@mail.com", placeholder_text_color="#a7887b")
-client_input_email.grid(row=5, column=1, pady=10)
+client_input_email.grid(row=6, column=1, pady=10)
 
 client_label_cpf = customtkinter.CTkLabel(client_frame, text="CPF:", font=("Poppins", 16))
-client_label_cpf.grid(row=6,column=0, sticky="W", padx=(25,0), pady=10)
+client_label_cpf.grid(row=7,column=0, sticky="W", padx=(25,0), pady=10)
 
 client_input_cpf = customtkinter.CTkEntry(client_frame, width=400, placeholder_text="digite os 11 dígitos do cpf do cliente", placeholder_text_color="#a7887b")
-client_input_cpf.grid(row=6, column=1, pady=10)
+client_input_cpf.grid(row=7, column=1, pady=10)
 
 event_frame_title = customtkinter.CTkLabel(window, text="Dados do evento", font=("Poppins", 14))
-event_frame_title.grid(row=7, column=0, sticky="W", padx=30, pady=(40, 0))
+event_frame_title.grid(row=8, column=0, sticky="W", padx=30, pady=(40, 0))
 
 event_frame = customtkinter.CTkScrollableFrame(window, border_width=0, width=530)
-event_frame.grid(row=8, column=0, padx=30)
+event_frame.grid(row=9, column=0, padx=30)
 
 event_label_name = customtkinter.CTkLabel(event_frame, text="Nome:", font=("Poppins", 16))
-event_label_name.grid(row=9, column=0, sticky="W", padx=(25,0), pady=10)
+event_label_name.grid(row=10, column=0, sticky="W", padx=(25,0), pady=10)
 
 event_input_name = customtkinter.CTkEntry(event_frame, placeholder_text="aniversário de 10 anos da Lila", width=280, placeholder_text_color="#a7887b")
-event_input_name.grid(row=9, column=1, pady=10, sticky="EW")
+event_input_name.grid(row=10, column=1, pady=10, sticky="EW")
 
 event_label_location = customtkinter.CTkLabel(event_frame, text="Endereço:", font=("Poppins", 16))
-event_label_location.grid(row=10, column=0, sticky="W", padx=(25,0),  pady=10)
+event_label_location.grid(row=11, column=0, sticky="W", padx=(25,0),  pady=10)
 
 event_input_location = customtkinter.CTkEntry(event_frame, placeholder_text="endereço do evento ou digite apenas casa", placeholder_text_color="#a7887b", width=280)
-event_input_location.grid(row=10, column=1, pady=10)
+event_input_location.grid(row=11, column=1, pady=10)
 
 event_label_date = customtkinter.CTkLabel(event_frame, text="Data:", font=("Poppins", 16))
-event_label_date.grid(row=11, column=0, sticky="W", padx=(25,0),  pady=10)
+event_label_date.grid(row=12, column=0, sticky="W", padx=(25,0),  pady=10)
 
 event_input_date = customtkinter.CTkEntry(event_frame, placeholder_text='dd/mm/aaaa', placeholder_text_color="#a7887b", width=150)
-event_input_date.grid(row=11, column=1, pady=10, sticky="W")
+event_input_date.grid(row=12, column=1, pady=10, sticky="W")
 
 event_select_button = customtkinter.CTkButton(event_frame, text="Selecionar data", font=("Poppins", 14), command= lambda: generate_calendar_window(pop_up, event_input_date))
-event_select_button.grid(row=11, column=1, pady=10, padx=(100, 0))
+event_select_button.grid(row=12, column=1, pady=10, padx=(100, 0))
 
 event_label_start_time = customtkinter.CTkLabel(event_frame, text="Início da cobertura:", font=("Poppins", 16))
-event_label_start_time.grid(row=12, column=0, sticky="W", padx=(25,0), pady=10)
+event_label_start_time.grid(row=13, column=0, sticky="W", padx=(25,0), pady=10)
 
 event_input_start_time = customtkinter.CTkEntry(event_frame, placeholder_text='formato hh:mm', placeholder_text_color="#a7887b", width=280)
-event_input_start_time.grid(row=12, column=1, pady=10)
+event_input_start_time.grid(row=13, column=1, pady=10)
 
 event_label_commuting_fee = customtkinter.CTkLabel(event_frame, text="Valor do deslocamento:", font=("Poppins", 16))
-event_label_commuting_fee.grid(row=13, column=0, sticky="W", padx=25, pady=10)
+event_label_commuting_fee.grid(row=14, column=0, sticky="W", padx=25, pady=10)
 
 event_input_commuting_fee = customtkinter.CTkEntry(event_frame, placeholder_text='sem caracteres especiais (R$ etc)', placeholder_text_color="#a7887b", width=280)
-event_input_commuting_fee.grid(row=13, column=1, pady=10)
+event_input_commuting_fee.grid(row=14, column=1, pady=10)
 
 event_label_payment_type = customtkinter.CTkLabel(event_frame, text="Tipo de pagamento:", font=("Poppins", 16))
-event_label_payment_type.grid(row=14, column=0, sticky="W", padx=(25,0), pady=10)
+event_label_payment_type.grid(row=15, column=0, sticky="W", padx=(25,0), pady=10)
 
 selected_payment_type = customtkinter.StringVar(value="PIX")
 
 payment_radio1 = customtkinter.CTkRadioButton(event_frame, text="PIX", variable = selected_payment_type, value = 'PIX')
-payment_radio1.grid(row=14, column=1, sticky="W")
+payment_radio1.grid(row=15, column=1, sticky="W")
 
 payment_radio2 = customtkinter.CTkRadioButton(event_frame, text="Cartão", variable = selected_payment_type, value = 'cartão')
-payment_radio2.grid(row=14, column=1)
+payment_radio2.grid(row=15, column=1)
 
 discount_label = customtkinter.CTkLabel(event_frame, text="Desconto: ", font=("Poppins", 16))
-discount_label.grid(row=15, column=0, sticky="W", padx=(25,0), pady=10)
+discount_label.grid(row=16, column=0, sticky="W", padx=(25,0), pady=10)
 
 discount_input = customtkinter.CTkEntry(event_frame, placeholder_text='apenas os digitos sem o caractere %', placeholder_text_color="#a7887b", width=280)
-discount_input.grid(row=15, column=1, pady=10)
+discount_input.grid(row=16, column=1, pady=10)
 
 event_label_due_date = customtkinter.CTkLabel(event_frame, text="Data de vencimento:", font=("Poppins", 16))
-event_label_due_date.grid(row=16, column=0, padx=(0,25), pady=10)
+event_label_due_date.grid(row=17, column=0, padx=(0,25), pady=10)
 
 event_input_due_date = customtkinter.CTkEntry(event_frame, placeholder_text='dd/mm/aaaa', placeholder_text_color="#a7887b", width=150)
-event_input_due_date.grid(row=16, column=1, pady=10, sticky="W")
+event_input_due_date.grid(row=17, column=1, pady=10, sticky="W")
 
 event_select_button = customtkinter.CTkButton(event_frame, text="Selecionar data", font=("Poppins", 14), command= lambda: generate_calendar_window(pop_up, event_input_due_date))
-event_select_button.grid(row=16, column=1, pady=10, padx=(100, 0))
+event_select_button.grid(row=17, column=1, pady=10, padx=(100, 0))
 
 package_label = customtkinter.CTkLabel(event_frame, text="Pacote:", font=("Poppins", 16))
-package_label.grid(row=17, column=0, sticky="W", padx=(25,0), pady=10)
+package_label.grid(row=18, column=0, sticky="W", padx=(25,0), pady=10)
 
 selected_package_type = customtkinter.StringVar(value="3hr")
 
 package_radio1 = customtkinter.CTkRadioButton(event_frame, text="1hr", variable = selected_package_type, value = '1hr')
-package_radio1.grid(row=17, column=1, sticky="W")
+package_radio1.grid(row=18, column=1, sticky="W")
 
 package_radio2 = customtkinter.CTkRadioButton(event_frame, text="2hrs", variable = selected_package_type, value = '2hr')
-package_radio2.grid(row=18, column=1, sticky="W", pady=(0,12))
+package_radio2.grid(row=19, column=1, sticky="W", pady=(0,12))
 
 package_radio3 = customtkinter.CTkRadioButton(event_frame, text="3hrs", variable = selected_package_type, value = '3hr')
-package_radio3.grid(row=19, column=1, sticky="W", pady=(0,12))
+package_radio3.grid(row=20, column=1, sticky="W", pady=(0,12))
 
 package_radio4 = customtkinter.CTkRadioButton(event_frame, text="3hrs + video", variable = selected_package_type, value = 'video')
-package_radio4.grid(row=20, column=1, sticky="W", pady=(0,20))
+package_radio4.grid(row=21, column=1, sticky="W", pady=(0,20))
 
 additional_service_label = customtkinter.CTkLabel(event_frame, text="Com ensaio pré-festa?", font=("Poppins", 16))
-additional_service_label.grid(row=21, column=0, sticky="W", padx=(25,0), pady=10)
+additional_service_label.grid(row=22, column=0, sticky="W", padx=(25,0), pady=10)
 
 selected_additional_service = customtkinter.BooleanVar()
 
 additional_service_radio1 = customtkinter.CTkRadioButton(event_frame, text="Sim", variable = selected_additional_service, value = True)
-additional_service_radio1.grid(row=21, column=1, sticky="W")
+additional_service_radio1.grid(row=22, column=1, sticky="W")
 
 additional_service_radio2 = customtkinter.CTkRadioButton(event_frame, text="Não", variable = selected_additional_service, value = False)
-additional_service_radio2.grid(row=21, column=1)
+additional_service_radio2.grid(row=22, column=1)
 
 submit_button = customtkinter.CTkButton(window, text="Gerar contrato", font=("Poppins", 16), command=lambda: create_contract(client_input_name.get(),client_input_address.get(),client_input_email.get(),client_input_cpf.get(),event_input_name.get(),event_input_location.get(),event_input_date.get(),event_input_start_time.get(),event_input_commuting_fee.get().replace(",", "."),selected_payment_type.get(),selected_package_type.get(), event_input_due_date.get(), discount_input.get(), selected_additional_service.get()))
 submit_button.grid(row=23, column=0, pady=30, padx=30, sticky="W")
