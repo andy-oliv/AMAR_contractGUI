@@ -57,6 +57,7 @@ pyinstaller --name contratosRapidos --onedir --windowed --icon=src\assets\favico
 ```
 ## ⚠️ Important
 after generating the GUI app if you see an error similar to this one
+
 <img src="src/assets/error_example.png" width="350">
 
 just copy the src folder and paste it inside the _internal folder in dist. This error happens because the GUI application is not able to find the custom theme file for customtkinter
