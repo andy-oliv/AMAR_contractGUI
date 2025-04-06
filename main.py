@@ -12,6 +12,8 @@ from src.config.db_config import session
 import os
 import sys
 import datetime
+
+#Pyinstaller configuration to set all the assets paths
 def resource_path(relative_path):
     try:
         base_path = sys._MEIPASS

@@ -9,6 +9,7 @@ import datetime
 
 load_dotenv()
 
+#Pyinstaller configuration to set all the assets paths
 def resource_path(relative_path):
     try:
         base_path = sys._MEIPASS
