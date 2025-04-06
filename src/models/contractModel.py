@@ -1,10 +1,13 @@
 from docx import Document
 from docx.shared import Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
+from dotenv import load_dotenv
 from src.entities.additionalService import pre_party_photoshoot
 import os
 import sys
 import datetime
+
+load_dotenv()
 
 def resource_path(relative_path):
     try:

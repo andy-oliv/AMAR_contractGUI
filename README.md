@@ -8,7 +8,7 @@
 <div align="center">
 
 ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
-
+![MySQL](https://img.shields.io/badge/mysql-4479A1.svg?style=for-the-badge&logo=mysql&logoColor=white)
 </div>
 
 <br>
@@ -21,16 +21,18 @@
 </div>
 
 ## 🎯 Goal
-At <strong>Amar Infâncias</strong>, the demand for photography coverages is high, which means contracts need to be generated frequently. I saw this as a great opportunity to practice automation while developing a tool that truly enhances our daily workflow.
+At <strong>Amar Infâncias</strong>, the demand for photography coverages is high, which means contracts need to be generated frequently. I saw this as a great opportunity to practice automation while developing a tool that truly enhances Amar Infâncias' daily workflow.
 
 <hr>
 
 ## ⚙️ Technologies
-The app was built with:
+The GUI app was built with:
 
 - <strong>Python
 - Python-docx
-- Tkinter/Customtkinter</strong>
+- Tkinter/Customtkinter
+- SQLAlchemy
+- Alembic</strong>
 
 <hr>
 
@@ -39,15 +41,11 @@ in the terminal, run the following command:
 ```bash
 pip install -r requirements.txt
 ```
+if you wish to run the app from the terminal run:
+```bash
+python main.py
+```
 to generate GUI app run:
 ```bash
 pyinstaller --name contratosRapidos --onedir --windowed --icon=src\assets\favicon.ico main.py
 ```
-all contract-sensitive information is protected using .env variables. Make sure to fill in all the necessary information in a .env file, following the .env.example file.
-
-<hr>
-
-## 🔧 How it works?
-All contract templates are organized in separate modules inside the models folder. This modular approach makes debugging easier and ensures that each template contains all the necessary information for its respective package.
-
-Once the form is filled out, clicking "Generate Contract" opens a dialog window where the user selects the destination folder. The contract is then automatically generated and saved in the chosen location.
